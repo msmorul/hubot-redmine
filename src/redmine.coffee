@@ -385,6 +385,7 @@ class Redmine
       "Content-Type": "application/json"
       "X-Redmine-API-Key": @token
       "Accept": "application/json"
+      "User-Agent": "hubot"
 
     endpoint = URL.parse(@url)
     pathname = endpoint.pathname.replace /^\/$/, ''
