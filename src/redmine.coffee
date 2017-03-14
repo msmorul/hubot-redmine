@@ -32,6 +32,38 @@ QUERY = require('querystring')
 module.exports = (robot) ->
   redmine = new Redmine process.env.HUBOT_REDMINE_BASE_URL, process.env.HUBOT_REDMINE_TOKEN
 
+  #
+  # Listen for ticket mentions #issueid and attempt to load
+  #
+  robot.hear /#(\d+)/i, (msg) ->
+    id = msg.match[1]
+    params = 
+      "include":  "journals"
+
+    redmine.Issue(id).show params, (err, data, status) ->
+      unless status == 200
+        msg.reply "Issue ##{id} doesn't exist."
+        return false
+
+      issue = data.issue
+      _ = []
+      _.push "\n[#{issue.project.name}] [##{issue.id}](#{redmine.url}/issues/#{id}) (#{issue.status.name})"
+      _.push "  Assigned: #{issue.assigned_to?.name ? 'Nobody'} (opened by #{issue.author.name})"
+      startDate = formatDate issue.created_on, 'mm/dd/yyyy (hh:ii ap)'
+      updatedDate = formatDate issue.updated_on, 'mm/dd/yyyy'
+      _.push "  Subject:     #{issue.subject}"
+      _.push "  Created:     #{startDate}"
+      _.push "  Last Update: #{updatedDate}"
+      # journals
+      _.push "\n" + Array(10).join('-') + '8<' + Array(50).join('-') + "\n"
+      journal = issue.journals[0]
+      if journal.notes? and journal.notes != ""
+        date = formatDate journal.created_on, 'mm/dd/yyyy (hh:ii ap)'
+        _.push "#{journal.user.name} on #{date}:"
+        _.push "    #{journal.notes}\n"
+
+      msg.reply _.join "\n"
+
   # Robot link me <issue>
   robot.respond /link me (?:issue )?(?:#)?(\d+)/i, (msg) ->
     id = msg.match[1]
