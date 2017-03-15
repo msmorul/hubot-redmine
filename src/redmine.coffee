@@ -56,7 +56,7 @@ module.exports = (robot) ->
       _.push "  Last Update: #{updatedDate}"
       # journals
       _.push "\n" + Array(10).join('-') + '8<' + Array(50).join('-') + "\n"
-      if issue.journals[0]?
+      if issue.journals.length > 0?
         journal = issue.journals[0]
         if journal.notes? and journal.notes != ""
           date = formatDate journal.created_on, 'mm/dd/yyyy (hh:ii ap)'
